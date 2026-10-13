@@ -43,4 +43,8 @@ public class MunicipioController {
             
         municipioService.load(request.municipio(), offset, limit, progress);
     }
+    @PostMapping("/setEstacion")
+    public void setEstacion(@RequestBody SetEstacionDtoRequest request){
+        this.municipioService.setEstacionDtoRequest(request.municipio(), request.nombre(), request.numero(), request.capacidad());
+    }
 }

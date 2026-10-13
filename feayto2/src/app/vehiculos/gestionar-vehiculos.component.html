@@ -1,0 +1,50 @@
+<section class="feature-panel">
+  <header class="feature-heading">
+    <p class="eyebrow">Flota municipal</p>
+    <h2>Gestionar vehículos</h2>
+    <p>Consulta la flota disponible y asigna vehículos a un municipio.</p>
+  </header>
+
+  <form class="assign-form" (ngSubmit)="asignarVehiculos()">
+    <label for="assign-city">Municipio</label>
+    <input id="assign-city" name="municipio" [(ngModel)]="municipio" required>
+    <label for="assign-count">Cantidad</label>
+    <input id="assign-count" name="cantidad" type="number" [(ngModel)]="cantidad" min="1" max="100" required>
+    <button type="submit" class="action-button" [disabled]="isLoading">
+      {{ isLoading ? 'Procesando…' : 'Asignar vehículos' }}
+    </button>
+  </form>
+
+  @if (isLoading) {
+    <p class="loading-message" role="status">Consultando bealquileres…</p>
+  }
+  @if (successMessage) {
+    <p class="success-message" role="status">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Matrícula</th><th>Municipio</th><th>Batería</th><th>Distancia total</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        @for (vehiculo of vehiculos; track vehiculo.id) {
+          <tr>
+            <td>{{ vehiculo.matricula }}</td>
+            <td>{{ vehiculo.municipio || 'Disponible' }}</td>
+            <td>{{ vehiculo.bateria }}</td>
+            <td>{{ vehiculo.distanciaTotal }}</td>
+            <td>{{ vehiculo.activo ? 'Activo' : 'Inactivo' }}</td>
+          </tr>
+        } @empty {
+          @if (!isLoading) {
+            <tr><td colspan="5" class="empty-state">No hay vehículos para mostrar.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

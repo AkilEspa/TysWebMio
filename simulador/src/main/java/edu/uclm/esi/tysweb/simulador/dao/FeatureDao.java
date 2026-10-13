@@ -19,4 +19,11 @@ public interface FeatureDao extends JpaRepository<Feature, String> {
         nativeQuery = true
     )
     Feature findRandomByMunicipio(@Param("municipioId") String municipioId);
+
+    @Query("""
+        SELECT AVG(f.latitude), AVG(f.longitude)
+        FROM Feature f
+        WHERE f.municipio.id = :municipioId
+        """)
+    Object[] findCenterByMunicipioId(@Param("municipioId") String municipioId);
 }

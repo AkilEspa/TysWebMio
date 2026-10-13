@@ -1,0 +1,63 @@
+<section class="feature-panel">
+  <header class="feature-heading">
+    <p class="eyebrow">Flota municipal</p>
+    <h2>Creación de vehículos</h2>
+    <p>Crea vehículos disponibles y consulta su estado desde el servicio de alquileres.</p>
+  </header>
+
+  <div class="vehicle-actions">
+    <label for="vehicle-count">Número de vehículos</label>
+    <input id="vehicle-count" type="number" [(ngModel)]="numberOfVehicles" min="1" max="5">
+    <button type="button" class="action-button" (click)="createVehicles()" [disabled]="isLoading">
+      Crear vehículos
+    </button>
+    <button type="button" class="secondary-button" (click)="getVehiculos()" [disabled]="isLoading">
+      Actualizar lista
+    </button>
+  </div>
+
+  @if (successMessage) {
+    <p class="success-message" role="status">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+  @if (isLoading) {
+    <p class="loading-message" role="status">Consultando el backend…</p>
+  }
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Matrícula</th>
+          <th>Municipio</th>
+          <th>Latitud</th>
+          <th>Longitud</th>
+          <th>Distancia total</th>
+          <th>Batería</th>
+          <th>Activo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (vehiculo of vehiculos; track vehiculo.id) {
+          <tr>
+            <td>{{ vehiculo.id }}</td>
+            <td>{{ vehiculo.matricula }}</td>
+            <td>{{ vehiculo.municipio || 'Sin asignar' }}</td>
+            <td>{{ vehiculo.latitudActual }}</td>
+            <td>{{ vehiculo.longitudActual }}</td>
+            <td>{{ vehiculo.distanciaTotal }}</td>
+            <td>{{ vehiculo.bateria }}</td>
+            <td>{{ vehiculo.activo ? 'Sí' : 'No' }}</td>
+          </tr>
+        } @empty {
+          @if (!isLoading) {
+            <tr><td class="empty-state" colspan="8">No hay vehículos para mostrar.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

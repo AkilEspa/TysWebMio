@@ -1,0 +1,112 @@
+.feature-panel {
+  padding: 32px 36px 38px;
+}
+
+.feature-heading {
+  margin-bottom: 24px;
+}
+
+.feature-heading h2 {
+  margin: 0 0 8px;
+  color: #1d2c40;
+  font-size: 1.65rem;
+}
+
+.feature-heading > p:last-child {
+  margin: 0;
+  color: #738095;
+  line-height: 1.6;
+}
+
+.vehicle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.vehicle-actions label {
+  color: #344258;
+  font-weight: 650;
+}
+
+.vehicle-actions input {
+  width: 90px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #dce3ec;
+  border-radius: 9px;
+}
+
+.action-button,
+.secondary-button {
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.action-button {
+  background: #2867bd;
+  color: #fff;
+}
+
+.secondary-button {
+  border: 1px solid #dce3ec;
+  background: #fff;
+  color: #344258;
+}
+
+.action-button:disabled,
+.secondary-button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid #e5ebf2;
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+th,
+td {
+  padding: 11px 13px;
+  border-bottom: 1px solid #edf1f5;
+  text-align: left;
+}
+
+th {
+  background: #f6f8fb;
+  color: #45546a;
+  font-size: .83rem;
+}
+
+td {
+  color: #536177;
+  font-size: .86rem;
+}
+
+.empty-state {
+  padding: 24px;
+  text-align: center;
+}
+
+.loading-message {
+  color: #52647c;
+}
+
+@media (max-width: 600px) {
+  .feature-panel { padding: 26px 22px 30px; }
+}

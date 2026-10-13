@@ -2,6 +2,7 @@ package edu.uclm.esi.tysweb.bealquileres.http;
 
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -30,7 +31,7 @@ public class VehiculoController {
 
     @PostMapping("/createVehicles")
     public void createVehicles(@RequestBody Integer numberOfVehicles) {
-        if (numberOfVehicles>5) 
+        if (numberOfVehicles>1000) 
             throw new ResponseStatusException(HttpStatus.CONTENT_TOO_LARGE, "Demasiados vehículos. Se admiten hasta 5");
 
         this.service.createVehicles(numberOfVehicles);
@@ -40,4 +41,14 @@ public class VehiculoController {
     private List<VehiculoDto> getVehiculos() {
         return this.service.getVehiculos();
     }
+    
+    @PostMapping ("/asignarVehiculos")
+    public void asignarVehiculos(@RequestBody AsignarVehiculoRequestDto request) {
+
+        if(request.cantidad() < 1 || request.cantidad()>100) 
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Demasiados vehículos. Se admiten entre 1 y 100");
+
+        this.service.asignarVehiculos(request.cantidad(), request.municipio());
+    }
+        
 }

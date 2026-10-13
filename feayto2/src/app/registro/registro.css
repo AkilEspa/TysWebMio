@@ -1,0 +1,32 @@
+.registro {
+  padding: 31px 36px 36px;
+}
+
+.section-heading {
+  margin-bottom: 24px;
+}
+
+.section-heading h1 {
+  font-size: clamp(1.55rem, 4vw, 1.85rem);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.btn-submit {
+  margin-top: 24px;
+}
+
+@media (max-width: 600px) {
+  .registro {
+    padding: 27px 22px 30px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

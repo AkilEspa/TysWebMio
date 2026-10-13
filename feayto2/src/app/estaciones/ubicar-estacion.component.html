@@ -1,0 +1,35 @@
+<section class="feature-panel">
+  <header class="feature-heading">
+    <p class="eyebrow">Infraestructura</p>
+    <h2>Ubicar estación</h2>
+    <p>Registra una estación en una dirección cargada previamente en el servicio de alquileres.</p>
+  </header>
+
+  <form class="station-form" (ngSubmit)="ubicarEstacion()">
+    <label for="station-city">Municipio</label>
+    <input id="station-city" name="municipio" [(ngModel)]="municipio" required>
+
+    <label for="station-street">Calle o vía</label>
+    <input id="station-street" name="nombre" [(ngModel)]="nombre" required>
+
+    <label for="station-number">Número</label>
+    <input id="station-number" name="numero" type="number" min="0" step="1" [(ngModel)]="numero" required>
+
+    <label for="station-capacity">Capacidad</label>
+    <input id="station-capacity" name="capacidad" type="number" min="1" step="1" [(ngModel)]="capacidad" required>
+
+    <button type="submit" class="action-button" [disabled]="isSubmitting">
+      {{ isSubmitting ? 'Guardando…' : 'Ubicar estación' }}
+    </button>
+  </form>
+
+  <p class="backend-note">
+    El municipio y la dirección deben existir previamente en bealquileres.
+  </p>
+  @if (successMessage) {
+    <p class="success-message" role="status">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+</section>

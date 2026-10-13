@@ -157,7 +157,30 @@ public class SimuladorService {
     }
 
     public List<MunicipioDto> getCities() {
-        return this.municipioDao.findAll().stream()
-            .map(m -> new MunicipioDto(m.getName(), m.getLatitude(), m.getLongitude())).toList();
+        List<MunicipioDto> cities = new ArrayList<>();
+        for (Municipio municipio : this.municipioDao.findAll()) {
+            Double latitude = municipio.getLatitude();
+            Double longitude = municipio.getLongitude();
+
+            if (latitude == null || longitude == null) {
+                Object[] center = this.featureDao.findCenterByMunicipioId(municipio.getId());
+                if (center != null && center.length >= 2 &&
+                    center[0] instanceof Number centerLatitude &&
+                    center[1] instanceof Number centerLongitude) {
+                    latitude = centerLatitude.doubleValue();
+                    longitude = centerLongitude.doubleValue();
+                }
+            }
+
+            if (latitude != null && !Double.isFinite(latitude)) {
+                latitude = null;
+            }
+            if (longitude != null && !Double.isFinite(longitude)) {
+                longitude = null;
+            }
+
+            cities.add(new MunicipioDto(municipio.getName(), latitude, longitude));
+        }
+        return cities;
     }
 }

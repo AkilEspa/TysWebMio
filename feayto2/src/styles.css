@@ -1,0 +1,164 @@
+@import "leaflet/dist/leaflet.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #f3f7fb;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: #26364b;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(66, 125, 207, .35);
+  outline-offset: 2px;
+}
+
+.section-heading h1,
+.registro h1 {
+  margin: 0 0 8px;
+  color: #1d2c40;
+  font-size: clamp(1.65rem, 4vw, 2rem);
+  letter-spacing: -.035em;
+}
+
+.section-heading > p:last-child,
+.registro > p {
+  margin: 0;
+  color: #738095;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  margin: 0 0 7px;
+  color: #3672c6;
+  font-size: .76rem;
+  font-weight: 750;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.form-group label {
+  color: #344258;
+  font-size: .88rem;
+  font-weight: 650;
+}
+
+.form-group input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  outline: none;
+  background: #fbfcfe;
+  color: #26364b;
+  font: inherit;
+  font-size: .92rem;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+
+.form-group input::placeholder {
+  color: #a0aaba;
+}
+
+.form-group input:focus {
+  border-color: #6a9be0;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(66, 125, 207, .13);
+}
+
+.form-group input.invalid {
+  border-color: #d95b63;
+  background: #fffafa;
+}
+
+.error-msg {
+  color: #bd414a;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.success-message,
+.error-message {
+  margin: 16px 0 0;
+  padding: 11px 13px;
+  border-radius: 9px;
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
+.success-message {
+  background: #eaf7f0;
+  color: #237447;
+}
+
+.error-message {
+  background: #fff0f0;
+  color: #a7353d;
+}
+
+.btn-submit {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 10px;
+  background: #2867bd;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: .94rem;
+  font-weight: 700;
+  transition: background .18s, transform .18s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #2058a5;
+}
+
+.btn-submit:disabled {
+  cursor: wait;
+  opacity: .72;
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

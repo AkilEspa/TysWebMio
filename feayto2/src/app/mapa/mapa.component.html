@@ -1,0 +1,83 @@
+<section class="feature-panel">
+  <header class="feature-heading">
+    <p class="eyebrow">Movilidad</p>
+    <h2>Gestionar tráfico</h2>
+    <p>Consulta los municipios y vehículos que mantiene el simulador.</p>
+  </header>
+
+  <div class="map-controls">
+    <label for="city-select">Municipio</label>
+    <select
+      id="city-select"
+      [ngModel]="selectedCity"
+      (ngModelChange)="loadMap($event)"
+      [disabled]="cities.length === 0"
+    >
+      @if (cities.length === 0) {
+        <option [ngValue]="null" disabled>No hay municipios disponibles</option>
+      }
+      @for (city of cities; track city.name) {
+        <option [ngValue]="city">{{ city.name }}</option>
+      }
+    </select>
+    <button type="button" class="secondary-button" (click)="loadVehiculos()" [disabled]="!selectedCity || isLoading">
+      Actualizar
+    </button>
+    <button type="button" class="action-button" (click)="simulacionAleatoria()" [disabled]="!selectedCity || isLoading">
+      Simulación aleatoria
+    </button>
+    <button type="button" class="secondary-button" (click)="generarBicicleta()" [disabled]="!selectedCity || isLoading">
+      Generar bicicleta
+    </button>
+  </div>
+
+  @if (isLoading) {
+    <p class="loading-message" role="status">Sincronizando con el simulador…</p>
+  }
+  @if (successMessage) {
+    <p class="success-message" role="status">{{ successMessage }}</p>
+  }
+  @if (dataMessage) {
+    <p class="loading-message" role="status">{{ dataMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+
+  <div class="map-container">
+    <div id="map" aria-label="Mapa del municipio y sus vehículos"></div>
+  </div>
+  <p class="vehicle-count">Hay {{ vehiculos.length }} bicicletas en marcha.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Matrícula</th>
+          <th>Origen</th>
+          <th>Destino</th>
+          <th>Posición actual</th>
+          <th>Velocidad</th>
+          <th>Distancia recorrida</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (vehiculo of vehiculos; track vehiculo.matricula) {
+          <tr (click)="mostrarRuta(vehiculo)" class="vehicle-row" tabindex="0"
+              (keydown.enter)="mostrarRuta(vehiculo)">
+            <td>{{ vehiculo.matricula }}</td>
+            <td>{{ vehiculo.nombreOrigen }} ({{ vehiculo.latitudOrigen | number:'1.4-4' }}, {{ vehiculo.longitudOrigen | number:'1.4-4' }})</td>
+            <td>{{ vehiculo.nombreDestino }} ({{ vehiculo.latitudDestino | number:'1.4-4' }}, {{ vehiculo.longitudDestino | number:'1.4-4' }})</td>
+            <td>{{ vehiculo.direccion }} ({{ vehiculo.latitudActual | number:'1.4-4' }}, {{ vehiculo.longitudActual | number:'1.4-4' }})</td>
+            <td>{{ vehiculo.kmh | number:'1.0-0' }} km/h</td>
+            <td>{{ vehiculo.distanciaRecorrida | number:'1.0-0' }} m</td>
+          </tr>
+        } @empty {
+          @if (!isLoading) {
+            <tr><td colspan="6" class="empty-state">No hay bicicletas en marcha en este municipio.</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
