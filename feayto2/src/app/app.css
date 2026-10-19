@@ -73,6 +73,23 @@
   font-size: 1.8rem;
 }
 
+.welcome-message {
+  margin: 0 0 18px;
+  color: #245db2;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.session-loading {
+  display: flex;
+  min-height: 160px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  color: #52647c;
+}
+
 .portal-options {
   display: grid;
   gap: 10px;
@@ -118,6 +135,32 @@
   grid-template-columns: 1fr 1fr;
   margin: 0 36px;
   border-bottom: 1px solid #e8edf3;
+}
+
+.auth-tabs a {
+  position: relative;
+  padding: 14px 10px;
+  color: #778397;
+  font-size: .94rem;
+  font-weight: 650;
+  text-align: center;
+  text-decoration: none;
+}
+
+.auth-tabs a:hover,
+.auth-tabs a.active {
+  color: #245db2;
+}
+
+.auth-tabs a.active::after {
+  position: absolute;
+  right: 18%;
+  bottom: -1px;
+  left: 18%;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: #3475d1;
+  content: "";
 }
 
 .auth-tabs button {

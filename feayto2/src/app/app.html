@@ -5,81 +5,36 @@
       <span>Portal municipal</span>
     </header>
 
-    @if (isAuthenticated) {
-      <section class="portal-home" aria-labelledby="portal-title">
-        <p class="eyebrow">Sesión iniciada</p>
-        <h1 id="portal-title">Opciones</h1>
-        <ol class="portal-options">
-          <li><button type="button" (click)="selectOption(1)">Crear vehículos</button></li>
-          <li><button type="button" (click)="selectOption(2)">Ubicar estaciones</button></li>
-          <li><button type="button" (click)="selectOption(3)">Gestionar estación</button></li>
-          <li><button type="button" (click)="selectOption(4)">Gestionar vehículos</button></li>
-          <li><button type="button" (click)="selectOption(5)">Gestionar tráfico</button></li>
-        </ol>
-        @if (selectedOption === 1) {
-          <app-crear-vehiculos></app-crear-vehiculos>
-        } @else if (selectedOption === 2) {
-          <app-ubicar-estacion></app-ubicar-estacion>
-        } @else if (selectedOption === 4) {
-          <app-gestionar-vehiculos></app-gestionar-vehiculos>
-        } @else if (selectedOption === 5) {
-          @defer (when selectedOption === 5) {
-          <app-mapa></app-mapa>
-          } @placeholder {
-            <p class="loading-message" role="status">Preparando el mapa…</p>
-          }
-        } @else if (selectedOption > 0) {
-          <p class="option-notice" role="status">
-            El backend todavía no ofrece una API para consultar o modificar estaciones existentes.
-          </p>
-        }
-        <button type="button" class="btn-submit" (click)="closeSession()">Cerrar sesión</button>
-      </section>
+    @if (sessionLoading$ | async) {
+      <p class="session-loading" role="status">
+        <span class="spinner" aria-label="Comprobando sesión"></span>
+        Comprobando la sesión…
+      </p>
     } @else {
-    @if (isConfirmingRegistration) {
-      <p class="confirmation-message" role="status">
-        Confirmando tu correo electrónico…
-      </p>
-    }
+      @if (isAuthRoute) {
+        <nav class="auth-tabs" aria-label="Acceso a la cuenta">
+          <a routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Iniciar sesión</a>
+          <a routerLink="/registro" routerLinkActive="active" ariaCurrentWhenActive="page">Crear cuenta</a>
+        </nav>
+      }
 
-    @if (registrationConfirmed) {
-      <p class="confirmation-message" role="status">
-        ¡Registro completado! Tu correo está confirmado. Ya puedes iniciar sesión.
-      </p>
-    }
+      @if (isConfirmingRegistration) {
+        <p class="confirmation-message" role="status">Confirmando tu correo electrónico…</p>
+      }
+      @if (registrationConfirmed) {
+        <p class="confirmation-message" role="status">
+          ¡Registro completado! Tu correo está confirmado. Ya puedes iniciar sesión.
+        </p>
+      }
+      @if (confirmationErrorMessage) {
+        <p class="error-message confirmation-error" role="alert">{{ confirmationErrorMessage }}</p>
+      }
 
-    @if (confirmationErrorMessage) {
-      <p class="error-message confirmation-error" role="alert">
-        {{ confirmationErrorMessage }}
-      </p>
-    }
+      <router-outlet></router-outlet>
 
-    <nav class="auth-tabs" aria-label="Acceso a la cuenta">
-      <button
-        type="button"
-        [class.active]="authMode === 'login'"
-        [attr.aria-current]="authMode === 'login' ? 'page' : null"
-        (click)="setAuthMode('login')"
-      >
-        Iniciar sesión
-      </button>
-      <button
-        type="button"
-        [class.active]="authMode === 'register'"
-        [attr.aria-current]="authMode === 'register' ? 'page' : null"
-        (click)="setAuthMode('register')"
-      >
-        Crear cuenta
-      </button>
-    </nav>
-
-    @if (authMode === 'register') {
-      <app-registro></app-registro>
-    } @else {
-      <app-login (authenticated)="isAuthenticated = true"></app-login>
-    }
-
-    <footer class="auth-footer">Un espacio seguro para la gestión de tu municipio</footer>
+      @if (isAuthRoute) {
+        <footer class="auth-footer">Un espacio seguro para la gestión de tu municipio</footer>
+      }
     }
   </div>
 </main>

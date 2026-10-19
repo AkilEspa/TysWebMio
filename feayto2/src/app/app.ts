@@ -2,13 +2,13 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, finalize } from 'rxjs';
 import * as QRCode from 'qrcode';
-import { Registro } from './registro/registro';
 import { Usuario } from './services/usuario';
 import { CrearVehiculosComponent } from './crear-vehiculos/crear-vehiculos.component';
-import { MapaComponent } from './mapa/mapa.component';
 import { UbicarEstacionComponent } from './estaciones/ubicar-estacion.component';
+import { MapaComponent } from './mapa/mapa.component';
 import { GestionarVehiculosComponent } from './vehiculos/gestionar-vehiculos.component';
 
 @Component({
@@ -130,6 +130,7 @@ import { GestionarVehiculosComponent } from './vehiculos/gestionar-vehiculos.com
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly usuarioService = inject(Usuario);
+  private readonly router = inject(Router);
 
   readonly loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -166,7 +167,7 @@ export class LoginComponent {
       .subscribe({
         next: (response) => {
           if (response.status === 'AUTHENTICATED') {
-            this.authenticated.emit();
+            this.completeLogin();
             return;
           }
           this.twoFactorStep = response.status === 'SETUP_REQUIRED' ? 'setup' : 'login';
@@ -218,8 +219,8 @@ export class LoginComponent {
       .pipe(finalize(() => this.isSubmitting = false))
       .subscribe({
         next: (response) => {
-          if (response.status === 'AUTHENTICATED' && response.token) {
-            this.authenticated.emit();
+          if (response.status === 'AUTHENTICATED') {
+            this.completeLogin();
           }
         },
         error: (err: HttpErrorResponse) => {
@@ -244,33 +245,138 @@ export class LoginComponent {
         ?? err.error?.detail
         ?? 'No se pudo completar la solicitud. Comprueba tus credenciales e inténtalo de nuevo.';
   }
+
+  private completeLogin(): void {
+    this.usuarioService.autoLogin().subscribe({
+      next: (session) => {
+        if (!session) {
+          this.errorMessage = 'No se pudo validar la sesión iniciada. Vuelve a intentarlo.';
+          return;
+        }
+        this.authenticated.emit();
+        this.router.navigateByUrl('/menu');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.errorMessage = this.getErrorMessage(err);
+      },
+    });
+  }
+}
+
+@Component({
+  selector: 'app-menu',
+  standalone: true,
+  imports: [
+    CommonModule,
+    CrearVehiculosComponent,
+    UbicarEstacionComponent,
+    GestionarVehiculosComponent,
+    MapaComponent,
+  ],
+  template: `
+    <section class="portal-home" aria-labelledby="portal-title">
+      @if (session$ | async; as session) {
+        <p class="eyebrow">Sesión iniciada</p>
+        <p class="welcome-message">Hola, {{ session.nombre }}</p>
+      }
+      <h1 id="portal-title">Opciones</h1>
+      <ol class="portal-options">
+        <li><button type="button" (click)="selectOption(1)">Crear vehículos</button></li>
+        <li><button type="button" (click)="selectOption(2)">Ubicar estaciones</button></li>
+        <li><button type="button" (click)="selectOption(3)">Gestionar estación</button></li>
+        <li><button type="button" (click)="selectOption(4)">Gestionar vehículos</button></li>
+        <li><button type="button" (click)="selectOption(5)">Gestionar tráfico</button></li>
+      </ol>
+      @if (selectedOption === 1) {
+        <app-crear-vehiculos></app-crear-vehiculos>
+      } @else if (selectedOption === 2) {
+        <app-ubicar-estacion></app-ubicar-estacion>
+      } @else if (selectedOption === 4) {
+        <app-gestionar-vehiculos></app-gestionar-vehiculos>
+      } @else if (selectedOption === 5) {
+        @defer (when selectedOption === 5) {
+          <app-mapa></app-mapa>
+        } @placeholder {
+          <p class="loading-message" role="status">Preparando el mapa…</p>
+        }
+      } @else if (selectedOption > 0) {
+        <p class="option-notice" role="status">
+          El backend todavía no ofrece una API para consultar o modificar estaciones existentes.
+        </p>
+      }
+      @if (errorMessage) {
+        <p class="error-message" role="alert">{{ errorMessage }}</p>
+      }
+      <button type="button" class="btn-submit" (click)="logout()" [disabled]="isLoggingOut">
+        @if (isLoggingOut) {
+          <span class="spinner" role="status" aria-label="Cerrando sesión"></span>
+        } @else {
+          <span>Cerrar sesión</span>
+        }
+      </button>
+    </section>
+  `,
+  styleUrl: './app.css',
+})
+export class MenuComponent {
+  private readonly usuario = inject(Usuario);
+  private readonly router = inject(Router);
+
+  readonly session$ = this.usuario.session$;
+  selectedOption = 0;
+  isLoggingOut = false;
+  errorMessage = '';
+
+  selectOption(option: number): void {
+    this.selectedOption = option;
+  }
+
+  logout(): void {
+    if (this.isLoggingOut) {
+      return;
+    }
+    this.isLoggingOut = true;
+    this.errorMessage = '';
+    this.usuario.logout()
+      .pipe(finalize(() => this.isLoggingOut = false))
+      .subscribe({
+        next: () => this.router.navigateByUrl('/login'),
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage = typeof error.error === 'string'
+            ? error.error
+            : error.error?.message ?? 'No se pudo cerrar la sesión. Inténtalo de nuevo.';
+        },
+      });
+  }
 }
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
-    Registro,
-    LoginComponent,
-    CrearVehiculosComponent,
-    MapaComponent,
-    UbicarEstacionComponent,
-    GestionarVehiculosComponent,
-  ],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
+export class App implements OnInit {
   private readonly usuarioService = inject(Usuario);
+  private readonly router = inject(Router);
 
   registrationConfirmed = false;
   isConfirmingRegistration = false;
   confirmationErrorMessage = '';
-  isAuthenticated = false;
-  selectedOption = 0;
-  authMode: 'login' | 'register' = 'register';
+  isAuthRoute = false;
+  readonly sessionLoading$ = this.usuarioService.sessionLoading$;
 
   ngOnInit(): void {
+    this.usuarioService.autoLogin().subscribe({
+      error: (error: HttpErrorResponse) => {
+        this.confirmationErrorMessage = this.getErrorMessage(error);
+      },
+    });
+    this.updateAuthRoute(this.router.url);
+    this.router.events.pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => this.updateAuthRoute(event.urlAfterRedirects));
+
     const url = new URL(window.location.href);
     const token = url.searchParams.get('confirmToken');
 
@@ -278,7 +384,6 @@ export class App {
       return;
     }
 
-    this.authMode = 'login';
     this.isConfirmingRegistration = true;
 
     this.usuarioService.confirmRegistration(token)
@@ -288,6 +393,7 @@ export class App {
           this.registrationConfirmed = true;
           url.searchParams.delete('confirmToken');
           window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+          this.router.navigateByUrl('/login');
         },
         error: (err: HttpErrorResponse) => {
           this.confirmationErrorMessage = typeof err.error === 'string'
@@ -299,17 +405,13 @@ export class App {
       });
   }
 
-  setAuthMode(mode: 'login' | 'register'): void {
-    this.authMode = mode;
+  private updateAuthRoute(url: string): void {
+    this.isAuthRoute = url.split('?')[0] === '/login' || url.split('?')[0] === '/registro';
   }
 
-  closeSession(): void {
-    this.isAuthenticated = false;
-    this.selectedOption = 0;
-    this.authMode = 'login';
-  }
-
-  selectOption(option: number): void {
-    this.selectedOption = option;
+  private getErrorMessage(error: HttpErrorResponse): string {
+    return typeof error.error === 'string'
+      ? error.error
+      : error.error?.message ?? 'No se pudo validar la sesión. Comprueba que el servicio de usuarios está disponible.';
   }
 }

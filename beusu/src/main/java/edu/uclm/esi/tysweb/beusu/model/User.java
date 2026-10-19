@@ -43,6 +43,9 @@ public class User {
         @Column(nullable = false, columnDefinition = "boolean default false")
         private boolean twoFactorEnabled;
         private LocalDateTime horaUltimaVerificacion2FA;
+        @Column(length = 36, unique = true)
+        private String sessionToken;
+        private LocalDateTime horaSessionToken;
         public  User(){
             this.id = java.util.UUID.randomUUID().toString();  
             this.tokenCreacion = java.util.UUID.randomUUID().toString();
@@ -160,6 +163,19 @@ public class User {
     }
     public void setHoraUltimaVerificacion2FA(LocalDateTime horaUltimaVerificacion2FA) {
         this.horaUltimaVerificacion2FA = horaUltimaVerificacion2FA;
+    }
+    @JsonIgnore
+    public String getSessionToken() {
+        return sessionToken;
+    }
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
+    }
+    public LocalDateTime getHoraSessionToken() {
+        return horaSessionToken;
+    }
+    public void setHoraSessionToken(LocalDateTime horaSessionToken) {
+        this.horaSessionToken = horaSessionToken;
     }
     public Boolean getActivo() {
         return this.horaConfirmacion != null;

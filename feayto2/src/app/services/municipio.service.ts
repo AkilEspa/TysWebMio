@@ -15,6 +15,6 @@ export class MunicipioService {
   private readonly urlMunicipios = `${environment.bealquileresUrl}/municipios`;
 
   setEstacion(request: EstacionRequest) {
-    return this.http.post<void>(`${this.urlMunicipios}/setEstacion`, request);
+    return this.http.post<void>(`${this.urlMunicipios}/setEstacion`, request, { withCredentials: true });
   }
 }

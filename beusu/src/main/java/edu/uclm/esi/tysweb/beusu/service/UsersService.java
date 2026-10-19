@@ -15,6 +15,7 @@ import edu.uclm.esi.tysweb.beusu.dao.UserDao;
 import edu.uclm.esi.tysweb.beusu.dto.LoginRequest;
 import edu.uclm.esi.tysweb.beusu.dto.LoginResponse;
 import edu.uclm.esi.tysweb.beusu.dto.RegistroRequest;
+import edu.uclm.esi.tysweb.beusu.dto.SessionResponse;
 import edu.uclm.esi.tysweb.beusu.model.User;
 
 /**
@@ -45,6 +46,9 @@ public class UsersService {
 
     @Value("${app.2fa.intervalo-dias:15}")
     private long intervalo2FADias;
+
+    @Value("${app.session.caducidad.minutos:1440}")
+    private long minutosCaducidadSesion;
 
     public void registerMunicipio(RegistroRequest body) {
         Boolean existe = this.idee.existe(body.municipio());
@@ -113,7 +117,7 @@ public class UsersService {
             return new LoginResponse("CODE_REQUIRED");
         }
 
-        return new LoginResponse("AUTHENTICATED", java.util.UUID.randomUUID().toString());
+        return this.createSession(user);
     }
 
     public String activar2FA(String email, String password) {
@@ -152,7 +156,40 @@ public class UsersService {
         }
 
         this.userDao.save(user);
-        return new LoginResponse("AUTHENTICATED", java.util.UUID.randomUUID().toString());
+        return this.createSession(user);
+    }
+
+    public SessionResponse validateSession(String sessionToken) {
+        User user = sessionToken == null ? null : this.userDao.findBySessionToken(sessionToken);
+        if (user == null || user.getHoraSessionToken() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión no es válida");
+        }
+
+        if (!user.getHoraSessionToken().plusMinutes(this.minutosCaducidadSesion).isAfter(LocalDateTime.now())) {
+            user.setSessionToken(null);
+            user.setHoraSessionToken(null);
+            this.userDao.save(user);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión ha caducado");
+        }
+
+        return new SessionResponse(user.getNombre());
+    }
+
+    public void logout(String sessionToken) {
+        User user = sessionToken == null ? null : this.userDao.findBySessionToken(sessionToken);
+        if (user != null) {
+            user.setSessionToken(null);
+            user.setHoraSessionToken(null);
+            this.userDao.save(user);
+        }
+    }
+
+    private LoginResponse createSession(User user) {
+        String sessionToken = java.util.UUID.randomUUID().toString();
+        user.setSessionToken(sessionToken);
+        user.setHoraSessionToken(LocalDateTime.now());
+        this.userDao.save(user);
+        return new LoginResponse("AUTHENTICATED", sessionToken);
     }
 
     private User validateCredentials(String email, String password) {

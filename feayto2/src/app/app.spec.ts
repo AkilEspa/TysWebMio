@@ -1,29 +1,51 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
-import { of } from 'rxjs';
+import { provideRouter, Router } from '@angular/router';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { vi } from 'vitest';
 import { App, LoginComponent } from './app';
-import { Usuario } from './services/usuario';
+import { routes } from './app.routes';
+import { Usuario, SessionUser } from './services/usuario';
 import { VehiculoService } from './services/vehiculo.service';
 import { SimuladorService } from './services/simulador.service';
 import { MunicipioService } from './services/municipio.service';
-import { vi } from 'vitest';
 
-describe('App', () => {
+describe('App authentication routes', () => {
+  let session: BehaviorSubject<SessionUser | null>;
+  let usuario: {
+    autoLogin: ReturnType<typeof vi.fn>;
+    session$: BehaviorSubject<SessionUser | null>;
+    sessionLoading$: Observable<boolean>;
+    confirmRegistration: ReturnType<typeof vi.fn>;
+    login: ReturnType<typeof vi.fn>;
+    verify2FACode: ReturnType<typeof vi.fn>;
+    register: ReturnType<typeof vi.fn>;
+    logout: ReturnType<typeof vi.fn>;
+  };
+
   beforeEach(async () => {
+    session = new BehaviorSubject<SessionUser | null>(null);
+    usuario = {
+      autoLogin: vi.fn(() => of(session.value)),
+      session$: session,
+      sessionLoading$: of(false),
+      confirmRegistration: vi.fn(() => of('Cuenta confirmada')),
+      login: vi.fn(() => of({ status: 'CODE_REQUIRED', token: null, activationUrl: null })),
+      verify2FACode: vi.fn(() => of({ status: 'AUTHENTICATED', token: null, activationUrl: null })),
+      register: vi.fn(() => of({})),
+      logout: vi.fn(() => {
+        session.next(null);
+        return of(undefined);
+      }),
+    };
+
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
         provideHttpClient(),
-        {
-          provide: Usuario,
-          useValue: {
-            confirmRegistration: () => of('Cuenta confirmada'),
-            login: () => of({ status: 'CODE_REQUIRED', token: null, activationUrl: null }),
-            verify2FACode: () => of({ status: 'AUTHENTICATED', token: 'token' }),
-            register: () => of({}),
-          },
-        },
+        provideRouter(routes),
+        { provide: Usuario, useValue: usuario },
         {
           provide: VehiculoService,
           useValue: {
@@ -42,54 +64,60 @@ describe('App', () => {
             generateBicycle: () => of({}),
           },
         },
-        {
-          provide: MunicipioService,
-          useValue: { setEstacion: () => of(undefined) },
-        },
+        { provide: MunicipioService, useValue: { setEstacion: () => of(undefined) } },
       ],
-    })
-      .compileComponents();
+    }).compileComponents();
   });
 
-  it('should create the app', () => {
+  async function navigateTo(path: string) {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render the registration form', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-registro')).toBeTruthy();
-  });
-
-  it('should show the email and password fields on the login tab', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const loginTab = Array.from(compiled.querySelectorAll('button'))
-      .find((button) => button.textContent?.includes('Iniciar sesión'));
-
-    loginTab?.click();
     fixture.detectChanges();
+    await TestBed.inject(Router).navigateByUrl(path);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return fixture;
+  }
 
-    expect(compiled.querySelector('app-login input[type="email"]')).toBeTruthy();
-    expect(compiled.querySelector('app-login input[type="password"]')).toBeTruthy();
+  it('renders login and registration as separate routes', async () => {
+    let fixture = await navigateTo('/login');
+    expect(fixture.nativeElement.querySelector('app-login input[type="email"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('a[routerlink="/registro"]')).toBeTruthy();
+
+    fixture = await navigateTo('/registro');
+    expect(fixture.nativeElement.querySelector('app-registro input#nombre')).toBeTruthy();
   });
 
-  it('should show the authenticator setup QR automatically after login when 2FA is not configured', async () => {
+  it('redirects unauthenticated users away from the private menu', async () => {
+    const fixture = await navigateTo('/menu');
+
+    expect(TestBed.inject(Router).url).toBe('/login');
+    expect(fixture.nativeElement.querySelector('app-menu')).toBeFalsy();
+  });
+
+  it('shows the account name and logs out from the protected menu', async () => {
+    session.next({ nombre: 'María' });
+    usuario.autoLogin.mockImplementation(() => of(session.value));
+    const fixture = await navigateTo('/menu');
+
+    expect(fixture.nativeElement.querySelector('.welcome-message')?.textContent).toContain('Hola, María');
+    expect(fixture.nativeElement.querySelector('.portal-options')).toBeTruthy();
+
+    (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('.portal-home > .btn-submit')?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(usuario.logout).toHaveBeenCalled();
+    expect(TestBed.inject(Router).url).toBe('/login');
+  });
+
+  it('renders the required 2FA setup after login when none is configured', async () => {
     const setupUrl = 'otpauth://totp/TySWeb:usuario%40municipio.es?secret=ABC&issuer=TySWeb';
-    const usuario = TestBed.inject(Usuario);
-    vi.spyOn(usuario, 'login').mockReturnValue(of({
+    usuario.login.mockReturnValue(of({
       status: 'SETUP_REQUIRED',
       token: null,
       activationUrl: setupUrl,
     }));
-
-    const fixture = TestBed.createComponent(App);
-    fixture.componentInstance.setAuthMode('login');
-    await fixture.whenStable();
+    const fixture = await navigateTo('/login');
     const login = fixture.debugElement.query(By.directive(LoginComponent)).componentInstance as LoginComponent;
     login.loginForm.setValue({ email: 'usuario@municipio.es', password: 'Clave123!' });
     login.onSubmit();
@@ -97,62 +125,5 @@ describe('App', () => {
 
     expect(login.activationUrl).toBe(setupUrl);
     expect(fixture.nativeElement.querySelector('.two-factor-setup')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('button[aria-label="Configurar 2FA"]')).toBeFalsy();
-  });
-
-  it('should show registration confirmation after following the email link', async () => {
-    window.history.replaceState({}, '', '/?confirmToken=test-token');
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-
-    expect(compiled.querySelector('.confirmation-message')?.textContent)
-      .toContain('¡Registro completado!');
-    expect(compiled.querySelector('app-login')).toBeTruthy();
-    expect(window.location.search).toBe('');
-
-    window.history.replaceState({}, '', '/');
-  });
-
-  it('should show the portal options after a successful login on the current app', async () => {
-    window.history.replaceState({}, '', '/login');
-    const fixture = TestBed.createComponent(App);
-    fixture.componentInstance.setAuthMode('login');
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const login = fixture.debugElement.query(By.directive(LoginComponent)).componentInstance as LoginComponent;
-    login.loginForm.setValue({ email: 'usuario@municipio.es', password: 'Clave123!' });
-    login.onSubmit();
-    login.twoFactorForm.setValue({ code: '123456' });
-    login.verifyCode();
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(Array.from(compiled.querySelectorAll('.portal-options button')).map((button) =>
-      button.textContent?.trim(),
-    )).toEqual([
-      'Crear vehículos',
-      'Ubicar estaciones',
-      'Gestionar estación',
-      'Gestionar vehículos',
-      'Gestionar tráfico',
-    ]);
-    expect(compiled.querySelector('.portal-home')).toBeTruthy();
-    expect(compiled.querySelector('app-login')).toBeFalsy();
-    compiled.querySelector<HTMLButtonElement>('.portal-options button')?.click();
-    fixture.detectChanges();
-    expect(compiled.querySelector('app-crear-vehiculos')).toBeTruthy();
-
-    const options = compiled.querySelectorAll<HTMLButtonElement>('.portal-options button');
-    options[1].click();
-    fixture.detectChanges();
-    expect(compiled.querySelector('app-ubicar-estacion')).toBeTruthy();
-
-    options[3].click();
-    fixture.detectChanges();
-    expect(compiled.querySelector('app-gestionar-vehiculos')).toBeTruthy();
-    window.history.replaceState({}, '', '/');
   });
 });

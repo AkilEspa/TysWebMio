@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserDao extends JpaRepository<User, String> {
     User findByEmail(String email);
     User findByTokenCreacion(String tokenCreacion);
+    User findBySessionToken(String sessionToken);
 }

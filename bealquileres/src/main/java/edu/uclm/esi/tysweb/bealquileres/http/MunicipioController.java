@@ -1,6 +1,5 @@
 package edu.uclm.esi.tysweb.bealquileres.http;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/municipios")
-@CrossOrigin("*")
 @Tag(
     name = "Municipios",
     description = "Operaciones relacionadas con la gestión de municipios por parte de los ayuntamientos"

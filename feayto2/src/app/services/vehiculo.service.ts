@@ -9,15 +9,15 @@ export class VehiculoService {
   private readonly urlAlquileres = `${environment.bealquileresUrl}/vehiculos`;
 
   createVehicles(numberOfVehicles: number) {
-    return this.http.post<void>(`${this.urlAlquileres}/createVehicles`, numberOfVehicles);
+    return this.http.post<void>(`${this.urlAlquileres}/createVehicles`, numberOfVehicles, { withCredentials: true });
   }
 
   getVehiculos() {
-    return this.http.get<VehiculoDto[]>(`${this.urlAlquileres}/getVehiculos`);
+    return this.http.get<VehiculoDto[]>(`${this.urlAlquileres}/getVehiculos`, { withCredentials: true });
   }
 
   asignarVehiculos(request: AsignarVehiculosRequest) {
-    return this.http.post<void>(`${this.urlAlquileres}/asignarVehiculos`, request);
+    return this.http.post<void>(`${this.urlAlquileres}/asignarVehiculos`, request, { withCredentials: true });
   }
 }
 
