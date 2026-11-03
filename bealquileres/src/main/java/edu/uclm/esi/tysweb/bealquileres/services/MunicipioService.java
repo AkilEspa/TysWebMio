@@ -8,11 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import edu.uclm.esi.tysweb.bealquileres.dao.EstacionDao;
 import edu.uclm.esi.tysweb.bealquileres.dao.FeatureDao;
 import edu.uclm.esi.tysweb.bealquileres.dao.MunicipioDao;
+import edu.uclm.esi.tysweb.bealquileres.dto.FeatureResponseDto;
 import edu.uclm.esi.tysweb.bealquileres.dto.FeatureDto;
-import edu.uclm.esi.tysweb.bealquileres.model.Estacion;
 import edu.uclm.esi.tysweb.bealquileres.model.Feature;
 import edu.uclm.esi.tysweb.bealquileres.model.Municipio;
 
@@ -25,8 +24,6 @@ public class MunicipioService {
 
     @Autowired 
     private SseService sseService;
-    @Autowired 
-    private EstacionDao estacionDao;
 
     public MunicipioService(CartoCiudadClient cartoCiudadClient, MunicipioDao dao, FeatureDao featureDao) {
         this.cartoCiudadClient = cartoCiudadClient;
@@ -80,20 +77,71 @@ public class MunicipioService {
         return this.cartoCiudadClient.getNumeroDeDirecciones(municipio);
     }
     public void setEstacionDtoRequest(String municipio, String nombre, Integer numero, Integer capacidad) {
+        if (capacidad == null || capacidad < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La capacidad debe ser de al menos una bicicleta");
+        }
         Municipio m = this.dao.findByName(municipio);
         if (m == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Municipio no encontrado: " + municipio);
-        Feature feature = this.featureDao.findByMunicipioAndNameAndNumber(municipio, nombre, numero);
+        Feature feature = this.featureDao.findByMunicipioAndNameAndNumber(m, nombre, String.valueOf(numero));
         if (feature == null)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Dirección no encontrada: " + nombre + " en " + municipio);
-        
-        Estacion estacion = new Estacion();
-        estacion.setMunicipio(m);
-        estacion.setNombre(feature.getName());
-        estacion.setNumero(feature.getNumber());
-        estacion.setLatitude(feature.getLatitude());
-        estacion.setLongitude(feature.getLongitude());
-        estacion.setCapacidad(capacidad);
-        this.estacionDao.save(estacion);
+
+        feature.setCapacidad(capacidad);
+        this.featureDao.save(feature);
+    }
+
+    public FeatureResponseDto setEstacionDesdeMapa(
+            String municipio, Double latitud, Double longitud, Integer capacidad) {
+        if (latitud == null || longitud == null || !Double.isFinite(latitud) || !Double.isFinite(longitud)
+                || latitud < -90 || latitud > 90 || longitud < -180 || longitud > 180) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Las coordenadas no son válidas");
+        }
+        if (capacidad == null || capacidad < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La capacidad debe ser de al menos una bicicleta");
+        }
+
+        Municipio municipioEntity = this.dao.findByName(municipio);
+        if (municipioEntity == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Municipio no encontrado: " + municipio);
+        }
+
+        Feature feature = new Feature();
+        feature.setMunicipio(municipioEntity);
+        feature.setName("Punto seleccionado en el mapa");
+        feature.setLatitude(latitud);
+        feature.setLongitude(longitud);
+        feature.setCapacidad(capacidad);
+        Feature savedFeature = this.featureDao.saveAndFlush(feature);
+        return this.toFeatureResponse(savedFeature);
+    }
+    public List<Feature> getFeatures(String municipio) {
+        Municipio m = this.dao.findByName(municipio);
+        if (m == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Municipio no encontrado: " + municipio);
+        }
+
+        return this.featureDao.findAllByMunicipioOrderByName(m);
+    }
+
+    public List<FeatureResponseDto> getEstaciones(String municipio) {
+        Municipio m = this.dao.findByName(municipio);
+        if (m == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Municipio no encontrado: " + municipio);
+        }
+
+        return this.featureDao.findAllByMunicipioAndCapacidadIsNotNullOrderByNameAsc(m).stream()
+                .map(this::toFeatureResponse)
+                .toList();
+    }
+
+    private FeatureResponseDto toFeatureResponse(Feature feature) {
+        return new FeatureResponseDto(
+                feature.getId(),
+                feature.getName(),
+                feature.getNumber(),
+                feature.getCapacidad(),
+                feature.getLatitude(),
+                feature.getLongitude());
     }
 }

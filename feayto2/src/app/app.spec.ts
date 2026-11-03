@@ -64,7 +64,14 @@ describe('App authentication routes', () => {
             generateBicycle: () => of({}),
           },
         },
-        { provide: MunicipioService, useValue: { setEstacion: () => of(undefined) } },
+        {
+          provide: MunicipioService,
+          useValue: {
+            setEstacion: () => of(undefined),
+            setEstacionMapa: () => of(undefined),
+            getEstaciones: () => of([]),
+          },
+        },
       ],
     }).compileComponents();
   });
@@ -95,12 +102,27 @@ describe('App authentication routes', () => {
   });
 
   it('shows the account name and logs out from the protected menu', async () => {
-    session.next({ nombre: 'María' });
+    session.next({ nombre: 'María', municipio: 'Ciudad Real' });
     usuario.autoLogin.mockImplementation(() => of(session.value));
     const fixture = await navigateTo('/menu');
 
     expect(fixture.nativeElement.querySelector('.welcome-message')?.textContent).toContain('Hola, María');
     expect(fixture.nativeElement.querySelector('.portal-options')).toBeTruthy();
+
+    const stationsButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.portal-options button'),
+    ).find((button) => button.textContent?.includes('Gestionar estación'));
+    stationsButton?.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-ubicar-estaciones')).toBeTruthy();
+
+    const purchaseButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.portal-options button'),
+    ).find((button) => button.textContent?.includes('Comprar bicicletas'));
+    expect(purchaseButton).toBeTruthy();
+    purchaseButton?.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-payments input#quantity')).toBeTruthy();
 
     (fixture.nativeElement as HTMLElement)
       .querySelector<HTMLButtonElement>('.portal-home > .btn-submit')?.click();

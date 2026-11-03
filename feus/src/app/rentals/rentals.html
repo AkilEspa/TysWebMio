@@ -1,0 +1,87 @@
+<section class="rentals-page">
+  <header class="page-heading">
+    <p class="eyebrow">Alquiler por horas</p>
+    @if (session$ | async; as session) {
+      <p class="welcome">Hola, {{ session.nombre }}</p>
+    }
+    <h1>Encuentra tu vehículo</h1>
+    <p>Elige un vehículo eléctrico disponible y págalo de forma segura con Stripe.</p>
+  </header>
+
+  @if (isLoading) {
+    <p class="status" role="status">Buscando vehículos...</p>
+  } @else if (vehicles.length === 0) {
+    <p class="status">Ahora mismo no hay vehículos disponibles para alquilar.</p>
+  } @else {
+    <div class="vehicle-grid">
+      @for (vehicle of vehicles; track vehicle.id) {
+        <article class="vehicle-card" [class.selected]="selectedVehicleId === vehicle.id">
+          <div class="vehicle-icon" aria-hidden="true">🚲</div>
+          <div>
+            <h2>Vehículo {{ vehicle.matricula }}</h2>
+            <p>{{ vehicle.municipio }}</p>
+            <p>Batería: {{ vehicle.bateria | number:'1.0-0' }}%</p>
+          </div>
+          <button type="button" (click)="chooseVehicle(vehicle)" [disabled]="isPreparingPayment || isPaying">
+            {{ selectedVehicleId === vehicle.id ? 'Seleccionado' : 'Elegir' }}
+          </button>
+        </article>
+      }
+    </div>
+  }
+
+  @if (selectedVehicleId) {
+    <section class="checkout-panel">
+      <h2>Duración del alquiler</h2>
+      <div class="duration-row">
+        <label for="hours">Horas (1–168)</label>
+        <input id="hours" name="hours" type="number" min="1" max="168" step="1"
+          [(ngModel)]="hours" [disabled]="isPreparingPayment || isPaying">
+        <span>5,00 € / hora</span>
+      </div>
+      <button class="primary" type="button" (click)="startCheckout()"
+        [disabled]="isPreparingPayment || isPaying">
+        {{ isPreparingPayment ? 'Preparando pago...' : 'Continuar al pago' }}
+      </button>
+
+      @if (checkout) {
+        <form class="card-form" (ngSubmit)="payAndRent()">
+          <p class="total">Total: {{ checkout.amountInCents / 100 | currency:'EUR':'symbol':'1.2-2':'es-ES' }}</p>
+          <label for="card-element">Datos de la tarjeta</label>
+          <div #cardElement id="card-element"></div>
+          @if (cardError) {
+            <p class="error" role="alert">{{ cardError }}</p>
+          }
+          <button class="primary" type="submit" [disabled]="!cardComplete || isPaying">
+            {{ isPaying ? 'Procesando...' : 'Pagar y confirmar alquiler' }}
+          </button>
+        </form>
+      }
+    </section>
+  }
+
+  @if (errorMessage) {
+    <p class="error status" role="alert">{{ errorMessage }}</p>
+  }
+  @if (successMessage) {
+    <p class="success status" role="status">{{ successMessage }}</p>
+  }
+
+  <section class="history">
+    <h2>Mis alquileres</h2>
+    @if (rentals.length === 0) {
+      <p>Aún no tienes alquileres.</p>
+    } @else {
+      <div class="history-list">
+        @for (rental of rentals; track rental.id) {
+          <article>
+            <strong>{{ rental.matricula }}</strong>
+            <span>{{ rental.horas }} hora(s)</span>
+            <span>{{ rental.importeCentimos / 100 | currency:'EUR':'symbol':'1.2-2':'es-ES' }}</span>
+            <span>Hasta {{ rental.horaFin | date:'short' }}</span>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>

@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { LoginComponent, MenuComponent } from './app';
 import { Registro } from './registro/registro';
 import { Usuario } from './services/usuario';
+import { Payments } from './payments/payments';
 
 const authGuard: CanActivateFn = () => {
   const usuario = inject(Usuario);
@@ -29,5 +30,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
   { path: 'registro', component: Registro, canActivate: [guestGuard] },
   { path: 'menu', component: MenuComponent, canActivate: [authGuard] },
+  { path: 'pagos', component: Payments, canActivate: [authGuard] },
   { path: '**', redirectTo: 'login' },
+
 ];

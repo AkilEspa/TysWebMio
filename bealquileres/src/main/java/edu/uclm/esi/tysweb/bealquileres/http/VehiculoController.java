@@ -8,13 +8,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.uclm.esi.tysweb.bealquileres.dto.VehiculoDto;
 import edu.uclm.esi.tysweb.bealquileres.services.VehiculoService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @RestController
 @RequestMapping("/api/vehiculos")
@@ -23,6 +30,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     description = "Operaciones relacionadas con la gestión de vehículos"
 )
 public class VehiculoController {
+
+    public record PurchaseVehiclesRequest(
+            @NotNull @Min(1) @Max(100) Integer quantity,
+            @NotBlank String paymentIntentId) {}
 
     @Autowired 
     private VehiculoService service;
@@ -39,6 +50,7 @@ public class VehiculoController {
     private List<VehiculoDto> getVehiculos() {
         return this.service.getVehiculos();
     }
+
     
     @PostMapping ("/asignarVehiculos")
     public void asignarVehiculos(@RequestBody AsignarVehiculoRequestDto request) {
@@ -47,6 +59,15 @@ public class VehiculoController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Demasiados vehículos. Se admiten entre 1 y 100");
 
         this.service.asignarVehiculos(request.cantidad(), request.municipio());
+    }
+
+    @PostMapping("/comprar")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<VehiculoDto> comprarVehiculos(
+            @Valid @RequestBody PurchaseVehiclesRequest request,
+            @RequestAttribute("authenticatedSessionToken") String sessionToken) {
+        return this.service.comprarVehiculos(
+                request.quantity(), request.paymentIntentId(), sessionToken);
     }
         
 }

@@ -1,0 +1,57 @@
+.payment {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 24rem;
+  padding: 1.5rem;
+  border: 1px solid #e1e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.payment input {
+  padding: 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font: inherit;
+}
+
+.payment button {
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: #245db2;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.payment button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+.unit-price,
+.total {
+  margin: 0;
+  color: #52647c;
+}
+
+.total {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+#card-element {
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+}
+
+.error {
+  color: #b00020;
+}
+
+.success {
+  color: #146c2e;
+}

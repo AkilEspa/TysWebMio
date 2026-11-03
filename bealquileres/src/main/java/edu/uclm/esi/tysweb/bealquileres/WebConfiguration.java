@@ -19,16 +19,19 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+record SessionUserResponse(String nombre, String email, String municipio) {}
+
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
     private final SessionAuthorizationInterceptor sessionAuthorizationInterceptor;
-    private final String frontendUrl;
+    private final String[] frontendUrls;
 
     public WebConfiguration(
             @Value("${app.users.url:http://localhost:8080}") String usersServiceUrl,
-            @Value("${app.frontend.url:http://localhost:4200}") String frontendUrl) {
+            @Value("${app.frontend.url:http://localhost:4200}") String frontendUrl,
+            @Value("${app.frontend.secondary-url:http://localhost:4201}") String secondaryFrontendUrl) {
         this.sessionAuthorizationInterceptor = new SessionAuthorizationInterceptor(usersServiceUrl);
-        this.frontendUrl = frontendUrl;
+        this.frontendUrls = new String[] { frontendUrl, secondaryFrontendUrl };
     }
 
     @Override
@@ -40,7 +43,7 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(this.frontendUrl)
+                .allowedOrigins(this.frontendUrls)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -57,6 +60,10 @@ class SessionAuthorizationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws IOException {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
+
         String sessionToken = request.getHeader("X-Session-Token");
         if (sessionToken == null || sessionToken.isBlank()) {
             Cookie[] cookies = request.getCookies();
@@ -75,11 +82,19 @@ class SessionAuthorizationInterceptor implements HandlerInterceptor {
         }
 
         try {
-            this.restClient.get()
+            SessionUserResponse session = this.restClient.get()
                     .uri("/users/validateSession")
                     .header("X-Session-Token", sessionToken)
                     .retrieve()
-                    .toBodilessEntity();
+                    .body(SessionUserResponse.class);
+            if (session == null || session.email() == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.SERVICE_UNAVAILABLE,
+                        "El servicio de usuarios no devolvió la sesión validada");
+            }
+            request.setAttribute("authenticatedUserEmail", session.email());
+            request.setAttribute("authenticatedMunicipality", session.municipio());
+            request.setAttribute("authenticatedSessionToken", sessionToken);
             return true;
         } catch (HttpClientErrorException.Unauthorized exception) {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), "La sesión no es válida o ha caducado");

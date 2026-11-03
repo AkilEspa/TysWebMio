@@ -1,0 +1,51 @@
+<section class="feature-panel" aria-labelledby="stations-title">
+  <header class="feature-heading">
+    <p class="eyebrow">Infraestructura</p>
+    <h2 id="stations-title">Estaciones de {{ municipio }}</h2>
+    <p>Consulta las estaciones ubicadas en tu municipio y su capacidad.</p>
+  </header>
+
+  @if (isLoading) {
+    <p class="loading-message" role="status">Cargando estaciones…</p>
+  }
+  @if (errorMessage) {
+    <p class="error-message" role="alert">{{ errorMessage }}</p>
+  }
+
+  @if (!isLoading && !errorMessage) {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Dirección</th>
+            <th scope="col">Capacidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (feature of features; track feature.id) {
+            <tr>
+              <td>{{ feature.id }}</td>
+              <td>
+                {{ feature.nombre }}
+                @if (feature.numero) {
+                  {{ feature.numero }}
+                }
+                @if (feature.latitud !== null && feature.longitud !== null) {
+                  <span class="coordinates">
+                    ({{ feature.latitud }}, {{ feature.longitud }})
+                  </span>
+                }
+              </td>
+              <td>{{ feature.capacidad }} bicicletas</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="empty-state">Todavía no hay estaciones ubicadas en este municipio.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

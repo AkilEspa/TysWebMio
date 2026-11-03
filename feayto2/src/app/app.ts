@@ -10,6 +10,9 @@ import { CrearVehiculosComponent } from './crear-vehiculos/crear-vehiculos.compo
 import { UbicarEstacionComponent } from './estaciones/ubicar-estacion.component';
 import { MapaComponent } from './mapa/mapa.component';
 import { GestionarVehiculosComponent } from './vehiculos/gestionar-vehiculos.component';
+import { Payments } from './payments/payments';
+import { ConsultarMapa } from './consultar-mapa/consultar-mapa';
+import { UbicarEstaciones } from './ubicar-estaciones/ubicar-estaciones';
 
 @Component({
   selector: 'app-login',
@@ -272,6 +275,8 @@ export class LoginComponent {
     UbicarEstacionComponent,
     GestionarVehiculosComponent,
     MapaComponent,
+    Payments,
+    UbicarEstaciones,
   ],
   template: `
     <section class="portal-home" aria-labelledby="portal-title">
@@ -286,11 +291,14 @@ export class LoginComponent {
         <li><button type="button" (click)="selectOption(3)">Gestionar estación</button></li>
         <li><button type="button" (click)="selectOption(4)">Gestionar vehículos</button></li>
         <li><button type="button" (click)="selectOption(5)">Gestionar tráfico</button></li>
+        <li><button type="button" (click)="selectOption(6)">Comprar bicicletas</button></li>
       </ol>
       @if (selectedOption === 1) {
         <app-crear-vehiculos></app-crear-vehiculos>
       } @else if (selectedOption === 2) {
         <app-ubicar-estacion></app-ubicar-estacion>
+      } @else if (selectedOption === 3) {
+        <app-ubicar-estaciones></app-ubicar-estaciones>
       } @else if (selectedOption === 4) {
         <app-gestionar-vehiculos></app-gestionar-vehiculos>
       } @else if (selectedOption === 5) {
@@ -299,6 +307,8 @@ export class LoginComponent {
         } @placeholder {
           <p class="loading-message" role="status">Preparando el mapa…</p>
         }
+      } @else if (selectedOption === 6) {
+        <app-payments></app-payments>
       } @else if (selectedOption > 0) {
         <p class="option-notice" role="status">
           El backend todavía no ofrece una API para consultar o modificar estaciones existentes.
@@ -353,7 +363,7 @@ export class MenuComponent {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ConsultarMapa],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

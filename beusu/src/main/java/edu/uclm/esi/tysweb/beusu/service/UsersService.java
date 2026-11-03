@@ -172,7 +172,7 @@ public class UsersService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión ha caducado");
         }
 
-        return new SessionResponse(user.getNombre());
+        return new SessionResponse(user.getNombre(), user.getEmail(), user.getMunicipio());
     }
 
     public void logout(String sessionToken) {

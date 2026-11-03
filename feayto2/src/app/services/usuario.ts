@@ -27,10 +27,12 @@ export interface LoginResponse {
 
 export interface SessionUser {
     nombre: string;
+    municipio?: string;
 }
 
 interface SessionResponse {
     nombre: string;
+    municipio: string;
 }
 
 export interface Verify2FARequest extends LoginRequest {
@@ -76,7 +78,7 @@ export class Usuario {
             this.sessionRequest = this.http.get<SessionResponse>(`${this.apiUrl}/validateSession`, {
                 withCredentials: true,
             }).pipe(
-                map((response) => ({ nombre: response.nombre })),
+                map((response) => ({ nombre: response.nombre, municipio: response.municipio })),
                 catchError((error: { status?: number }) => error.status === 401
                     ? of(null)
                     : throwError(() => error)),

@@ -25,6 +25,7 @@ public class Feature {
     private String zipCode;
     private Double latitude;
     private Double longitude;
+    private Integer capacidad;
 
     public Feature() {
         this.id = UUID.randomUUID().toString();
@@ -84,6 +85,14 @@ public class Feature {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public Integer getCapacidad() {
+        return capacidad;
+    }
+
+    public void setCapacidad(Integer capacidad) {
+        this.capacidad = capacidad;
     }
 
     public String getIdeeId() {

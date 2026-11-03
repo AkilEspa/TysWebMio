@@ -1,0 +1,97 @@
+.map-panel {
+  margin-top: 24px;
+}
+
+.map-heading h2 {
+  margin: 0 0 6px;
+  color: #1d2c40;
+  font-size: 1.25rem;
+}
+
+.map-heading p,
+.coordinates {
+  color: #52647c;
+  line-height: 1.5;
+}
+
+.map-container {
+  overflow: hidden;
+  height: min(50vh, 480px);
+  min-height: 320px;
+  border: 1px solid #dfe6ee;
+  border-radius: 12px;
+}
+
+.coordinates {
+  margin-bottom: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.coordinates output {
+  color: #1d2c40;
+  font-weight: 650;
+}
+
+.station-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.station-controls label {
+  color: #344258;
+  font-weight: 650;
+}
+
+.station-controls input {
+  width: 110px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid #dce3ec;
+  border-radius: 9px;
+  color: #26364b;
+  font: inherit;
+}
+
+.station-button {
+  min-height: 42px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 9px;
+  background: #2867bd;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.station-button:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.station-municipality {
+  flex-basis: 100%;
+  margin: 0;
+  color: #52647c;
+}
+
+.station-login-note,
+.station-success,
+.station-error {
+  margin: 12px 0 0;
+}
+
+.station-login-note {
+  color: #52647c;
+}
+
+.station-success {
+  color: #167347;
+}
+
+.station-error {
+  color: #b42318;
+}

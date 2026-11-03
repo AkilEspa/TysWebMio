@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
 
 @Entity 
 public class Vehiculo {
@@ -20,6 +21,9 @@ public class Vehiculo {
     private Double bateria = 100.0;
 
     private Boolean activo = true;
+
+    @Column
+    private String paymentIntentId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "municipio_id", nullable = true)
@@ -83,5 +87,13 @@ public class Vehiculo {
 
     public void setMunicipio(Municipio municipio) {
         this.municipio = municipio;
+    }
+
+    public String getPaymentIntentId() {
+        return paymentIntentId;
+    }
+
+    public void setPaymentIntentId(String paymentIntentId) {
+        this.paymentIntentId = paymentIntentId;
     }
 }

@@ -9,5 +9,4 @@ class BealquileresApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

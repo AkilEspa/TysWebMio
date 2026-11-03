@@ -1,0 +1,56 @@
+<section class="map-panel" aria-labelledby="map-title">
+  <header class="map-heading">
+    <h2 id="map-title">Seleccionar ubicación</h2>
+    <p>Haz clic en el mapa para consultar las coordenadas del punto.</p>
+  </header>
+
+  <div #mapContainer class="map-container" role="application" aria-label="Mapa interactivo"></div>
+
+  <p class="coordinates" aria-live="polite" role="status">
+    @if (coordenadas; as punto) {
+      Coordenadas seleccionadas:
+      <output>
+        Latitud {{ punto.latitud | number:'1.6-6' }},
+        longitud {{ punto.longitud | number:'1.6-6' }}
+      </output>
+    } @else {
+      Haz clic en el mapa para ver la latitud y longitud.
+    }
+  </p>
+
+  @if (session$ | async; as session) {
+    <div class="station-controls">
+      <label for="station-capacity">Capacidad (número de bicicletas)</label>
+      <input
+        id="station-capacity"
+        name="station-capacity"
+        type="number"
+        min="1"
+        step="1"
+        required
+        [(ngModel)]="capacidad"
+        [disabled]="isSavingStation"
+      >
+      <button
+        type="button"
+        class="station-button"
+        (click)="anadirEstacion()"
+        [disabled]="!coordenadas || isSavingStation"
+      >
+        {{ isSavingStation ? 'Guardando…' : 'Añadir estación' }}
+      </button>
+      @if (session.municipio) {
+        <p class="station-municipality">Se añadirá al municipio {{ session.municipio }}.</p>
+      }
+    </div>
+  } @else {
+    <p class="station-login-note">Inicia sesión para añadir estaciones a tu municipio.</p>
+  }
+
+  @if (successMessage) {
+    <p class="station-success" role="status">{{ successMessage }}</p>
+  }
+  @if (errorMessage) {
+    <p class="station-error" role="alert">{{ errorMessage }}</p>
+  }
+</section>

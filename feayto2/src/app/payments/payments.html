@@ -1,0 +1,33 @@
+<section class="payment">
+  <h1>Comprar bicicletas</h1>
+  <label for="quantity">Cantidad</label>
+  <input
+    id="quantity"
+    name="quantity"
+    type="number"
+    min="1"
+    max="100"
+    step="1"
+    required
+    [(ngModel)]="quantity"
+    [disabled]="isCreatingPayment || isPaying || !!clientSecret"
+  >
+  @if (unitPriceInCents) {
+    <p class="unit-price">Precio unitario: {{ unitPriceLabel }}</p>
+  }
+  <button type="button" (click)="startPayment()" [disabled]="isCreatingPayment || isPaying">
+    {{ isCreatingPayment ? 'Preparando compra...' : 'Continuar al pago' }}
+  </button>
+
+  <form (ngSubmit)="pay()" [hidden]="!clientSecret">
+    <p class="total">Total: {{ totalPriceLabel }}</p>
+    <label for="card-element">Número de tarjeta, fecha de caducidad y CVC</label>
+    <div #cardElement id="card-element"></div>
+    <button type="submit" [disabled]="!cardComplete || isPaying">
+      {{ isPaying ? 'Procesando compra...' : 'Finalizar compra' }}
+    </button>
+  </form>
+
+  <p class="error" role="alert" [hidden]="!errorMessage">{{ errorMessage }}</p>
+  <p class="success" role="status" [hidden]="!successMessage">{{ successMessage }}</p>
+</section>

@@ -31,7 +31,12 @@ import edu.uclm.esi.tysweb.beusu.service.UsersService;
 
 @RestController 
 @RequestMapping ("/users")
-@CrossOrigin(origins = "${app.frontend.url:http://localhost:4200}", allowCredentials = "true")
+@CrossOrigin(
+        origins = {
+                "${app.frontend.url:http://localhost:4200}",
+                "${app.frontend.secondary-url:http://localhost:4201}"
+        },
+        allowCredentials = "true")
 public class Usercontroller {
     @Autowired 
     private UsersService usersService;

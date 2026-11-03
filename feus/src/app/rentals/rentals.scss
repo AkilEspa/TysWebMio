@@ -1,0 +1,179 @@
+.rentals-page {
+  padding: 30px;
+}
+
+.page-heading {
+  margin-bottom: 24px;
+}
+
+.page-heading h1 {
+  margin: 6px 0;
+  font-size: clamp(1.65rem, 4vw, 2.2rem);
+}
+
+.welcome {
+  margin: 12px 0 0;
+  color: #277451;
+  font-weight: 700;
+}
+
+.page-heading p:last-child,
+.vehicle-card p,
+.history p {
+  color: #63746b;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #277451;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.vehicle-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e0e9e4;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.vehicle-card.selected {
+  border-color: #31865d;
+  box-shadow: 0 0 0 2px #d7f0e2;
+}
+
+.vehicle-card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.vehicle-card p {
+  margin: 5px 0 0;
+  font-size: .88rem;
+}
+
+.vehicle-card button {
+  grid-column: 1 / -1;
+  padding: 9px;
+  border: 1px solid #cbded3;
+  border-radius: 8px;
+  background: #f4faf7;
+  color: #225f42;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 650;
+}
+
+.checkout-panel,
+.history {
+  margin-top: 28px;
+  padding: 20px;
+  border: 1px solid #e0e9e4;
+  border-radius: 14px;
+}
+
+.checkout-panel h2,
+.history h2 {
+  margin: 0 0 16px;
+  font-size: 1.2rem;
+}
+
+.duration-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.duration-row input {
+  width: 110px;
+  padding: 10px;
+  border: 1px solid #d5e0da;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.primary {
+  margin-top: 16px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #18724e;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.primary:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+.card-form {
+  display: grid;
+  max-width: 480px;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e5ece8;
+}
+
+#card-element {
+  padding: 13px;
+  border: 1px solid #cbd9d1;
+  border-radius: 8px;
+}
+
+.total {
+  margin: 0 0 5px;
+  color: #155d40;
+  font-size: 1.1rem;
+  font-weight: 750;
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.history-list article {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px;
+  border-radius: 9px;
+  background: #f5f8f6;
+}
+
+.status {
+  margin: 16px 0;
+  line-height: 1.45;
+}
+
+.error {
+  color: #a52a22;
+}
+
+.success {
+  color: #17633e;
+}
+
+@media (max-width: 600px) {
+  .rentals-page {
+    padding: 22px 18px;
+  }
+}
