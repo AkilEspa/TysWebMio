@@ -1,14 +1,17 @@
 package edu.uclm.esi.tysweb.beusu.service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.uclm.esi.tysweb.beusu.dao.UserDao;
@@ -71,21 +74,104 @@ public class UsersService {
         }
 
         this.userDao.save(user);
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(this.mailFrom);
-        message.setTo(user.getEmail());
-        message.setSubject("Confirma tu registro");
-        message.setText("Haz clic en el siguiente enlace para confirmar tu cuenta: "
-            + this.frontendPublicUrl + "/?confirmToken=" + user.getTokenCreacion());
+        String confirmationUrl = this.frontendPublicUrl + "/?confirmToken=" + user.getTokenCreacion();
         try {
+            var message = this.mailSender.createMimeMessage();
+            var helper = new MimeMessageHelper(
+                message,
+                true,
+                StandardCharsets.UTF_8.name()
+            );
+            helper.setFrom(this.mailFrom);
+            helper.setTo(user.getEmail());
+            helper.setSubject("Confirma tu cuenta del Portal municipal");
+            helper.setText(
+                this.buildConfirmationEmailText(user, confirmationUrl),
+                this.buildConfirmationEmailHtml(user, confirmationUrl)
+            );
             this.mailSender.send(message);
-        } catch (MailException exception) {
+        } catch (MailException | MessagingException exception) {
             throw new ResponseStatusException(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 "La cuenta se ha guardado, pero no se pudo enviar el correo de confirmación. Comprueba el servicio SMTP y vuelve a intentarlo.",
                 exception
             );
         }
+    }
+
+    private String buildConfirmationEmailText(User user, String confirmationUrl) {
+        return "Hola " + user.getNombre() + ",\n\n"
+            + "Gracias por crear una cuenta para " + user.getMunicipio() + ". "
+            + "Confirma tu correo para activar el acceso al Portal municipal:\n\n"
+            + confirmationUrl + "\n\n"
+            + "Este enlace caduca en " + this.minutosCaducidad + " minutos. "
+            + "Si no has solicitado este registro, puedes ignorar este mensaje.";
+    }
+
+    private String buildConfirmationEmailHtml(User user, String confirmationUrl) {
+        String safeName = HtmlUtils.htmlEscape(user.getNombre());
+        String safeMunicipio = HtmlUtils.htmlEscape(user.getMunicipio());
+        String safeUrl = HtmlUtils.htmlEscape(confirmationUrl);
+
+        return """
+            <!doctype html>
+            <html lang="es">
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Confirma tu cuenta</title>
+              </head>
+              <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#172033;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f1f5f9;padding:32px 12px;">
+                  <tr>
+                    <td align="center">
+                      <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
+                        <tr>
+                          <td style="background-color:#123c4a;padding:28px 36px;color:#ffffff;">
+                            <div style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:#b8e4dc;">Portal municipal</div>
+                            <div style="font-size:25px;font-weight:bold;margin-top:8px;">Activa tu cuenta</div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:36px;">
+                            <p style="font-size:17px;line-height:1.5;margin:0 0 16px;">Hola {{nombre}},</p>
+                            <p style="font-size:15px;line-height:1.7;color:#475569;margin:0 0 24px;">
+                              Gracias por registrar <strong>{{municipio}}</strong>. Confirma tu dirección de correo para activar tu cuenta y acceder a las herramientas de gestión municipal.
+                            </p>
+                            <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto 24px;">
+                              <tr>
+                                <td align="center" style="border-radius:8px;background-color:#087f72;">
+                                  <a href="{{url}}" style="display:inline-block;padding:15px 26px;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;border-radius:8px;">Confirmar mi correo</a>
+                                </td>
+                              </tr>
+                            </table>
+                            <p style="font-size:13px;line-height:1.6;color:#64748b;margin:0 0 8px;">
+                              El enlace caduca en {{caducidad}} minutos. Si el botón no funciona, copia y pega este enlace en tu navegador:
+                            </p>
+                            <p style="font-size:12px;line-height:1.6;word-break:break-all;margin:0;">
+                              <a href="{{url}}" style="color:#087f72;">{{url}}</a>
+                            </p>
+                            <p style="font-size:13px;line-height:1.6;color:#64748b;margin:28px 0 0;">
+                              Si no has solicitado este registro, puedes ignorar este mensaje.
+                            </p>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:18px 36px;background-color:#f8fafc;color:#94a3b8;font-size:12px;text-align:center;">
+                            Este es un mensaje automático del Portal municipal.
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </body>
+            </html>
+            """
+            .replace("{{nombre}}", safeName)
+            .replace("{{municipio}}", safeMunicipio)
+            .replace("{{url}}", safeUrl)
+            .replace("{{caducidad}}", Long.toString(this.minutosCaducidad));
     }
 
     public void confirmarCuenta(String token) {
